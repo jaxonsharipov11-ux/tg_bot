@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kurslar markazi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+/* Telegram mavzusi bo'lmasa (oddiy brauzerda) shu ranglar ishlaydi */
+:root{--f-bg:#fff;--f-text:#15181e;--f-hint:#6a7280;--f-soft:#f1f3f6;--f-link:#2a5bd7;--f-btn:#2a5bd7}
+@media (prefers-color-scheme:dark){:root{--f-bg:#16181c;--f-text:#eceef2;--f-hint:#9aa1ad;--f-soft:#21242a;--f-link:#7aa0ff;--f-btn:#4f7df0}}
+:root{
+  --bg:var(--tg-theme-bg-color,var(--f-bg));
+  --text:var(--tg-theme-text-color,var(--f-text));
+  --hint:var(--tg-theme-hint-color,var(--f-hint));
+  --soft:var(--tg-theme-secondary-bg-color,var(--f-soft));
+  --link:var(--tg-theme-link-color,var(--f-link));
+  --btn:var(--tg-theme-button-color,var(--f-btn));
+  --btn-text:var(--tg-theme-button-text-color,#fff);
+  --line:rgba(128,128,128,.28);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:400 16px/1.5 Manrope,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  padding:calc(env(safe-area-inset-top,0px) + 20px) 20px calc(env(safe-area-inset-bottom,0px) + 88px)}
+.wrap{max-width:520px;margin:0 auto}
+:focus-visible{outline:2px solid var(--link);outline-offset:2px}
+h1{font-size:clamp(28px,8.5vw,38px);line-height:1.1;letter-spacing:-.02em;font-weight:800;margin:8px 0 12px}
+h2{font-size:22px;letter-spacing:-.01em;margin:8px 0 6px}
+h3{font-size:15px;font-weight:600;color:var(--hint);margin:28px 0 0}
+p{margin:0}
+.lead{color:var(--hint);max-width:34ch}
+.hint{color:var(--hint);font-size:14px}
+
+/* Kurslar ro'yxati: muddat asosiy belgi */
+.row{display:grid;grid-template-columns:60px 1fr;gap:14px;align-items:center;width:100%;padding:14px 0;border:0;border-bottom:1px solid var(--line);
+  background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.dur{font-weight:800;font-size:40px;line-height:1;text-align:center;color:var(--link)}
+.dur small{display:block;font-size:12px;font-weight:600;color:var(--hint);margin-top:3px}
+.row b{display:block;font-size:17px}
+.row span{color:var(--hint);font-size:14px}
+
+/* Forma */
+label{display:block;font-weight:600;font-size:14px;margin:18px 0 6px}
+input,select{width:100%;padding:13px 14px;border-radius:10px;border:1px solid var(--line);background:var(--soft);color:var(--text);font:inherit}
+.btn{width:100%;margin-top:22px;padding:14px;border:0;border-radius:12px;background:var(--btn);color:var(--btn-text);font:600 16px Manrope,system-ui,sans-serif;cursor:pointer}
+.msg{margin-top:14px;font-size:14px;min-height:20px}
+.msg.err{color:#d93a3a}
+.msg.ok{color:#1f9d55}
+
+/* Aloqa */
+.links{margin-top:14px}
+.link{display:flex;justify-content:space-between;gap:12px;padding:15px 0;border-bottom:1px solid var(--line);color:var(--text);text-decoration:none}
+.link span{color:var(--hint);font-size:14px;overflow-wrap:anywhere;text-align:right}
+
+/* Pastki menyu */
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--bg);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav button{flex:1;padding:15px 0;border:0;border-top:3px solid transparent;margin-top:-1px;background:none;color:var(--hint);font:600 14px Manrope,system-ui,sans-serif;cursor:pointer}
+nav button.on{color:var(--link);border-top-color:var(--link)}
+.view{display:none}
+.view.on{display:block}
+@media (prefers-reduced-motion:no-preference){.btn:active,.row:active{opacity:.7}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 1. Kurslar -->
+  <section class="view on" id="v-kurslar">
+    <h1>Kod yozishni bugun boshlang</h1>
+    <p class="lead">Frontend va Backend kurslari. Kursni tanlang, ariza qoldiring, biz sizga bog‘lanamiz.</p>
+    <div id="list"></div>
+    <p class="hint" style="margin-top:16px">Kursni bossangiz, ariza oynasi ochiladi.</p>
+  </section>
+
+  <!-- 2. Ariza -->
+  <section class="view" id="v-ariza">
+    <h2>Ariza qoldiring</h2>
+    <p class="hint">Ma’lumotlaringiz botga yuboriladi va administrator siz bilan bog‘lanadi.</p>
+    <form id="form" novalidate>
+      <label for="ism">Ism</label>
+      <input id="ism" autocomplete="name" placeholder="Ismingiz">
+      <label for="tel">Telefon raqam</label>
+      <input id="tel" type="tel" autocomplete="tel" placeholder="+998 90 123 45 67">
+      <label for="kurs">Kurs</label>
+      <select id="kurs"></select>
+      <button class="btn" type="submit">Ariza yuborish</button>
+      <p class="msg" id="msg" role="status"></p>
+    </form>
+  </section>
+
+  <!-- 3. Aloqa -->
+  <section class="view" id="v-aloqa">
+    <h2>Biz bilan bog‘laning</h2>
+    <p class="hint">Savollaringiz bo‘lsa, qulay usulni tanlang.</p>
+    <div class="links" id="links"></div>
+  </section>
+
+</div>
+
+<nav>
+  <button class="on" data-tab="kurslar">Kurslar</button>
+  <button data-tab="ariza">Ariza</button>
+  <button data-tab="aloqa">Aloqa</button>
+</nav>
+
+<script>
+// ====== SHU YERNI O'ZINGIZGA MOSLANG ======
+const CONFIG = {
+  phone: "+998901234567",
+  email: "info@sizning-sayt.uz",
+  instagram: "https://instagram.com/sizning_sahifa",
+  telegram: "https://t.me/sizning_kanal",
+  facebook: "https://facebook.com/sizning_sahifa",
+  site: "https://sizning-sayt.uz"
+};
+
+const COURSES = [
+  { group: "Frontend", items: [
+    { name: "HTML", months: 1, text: "Sahifa tuzilishi, teglar va formalar." },
+    { name: "CSS", months: 1, text: "Dizayn, flex, grid va mobilga moslash." },
+    { name: "JS", months: 2, text: "Sahifani jonlantirish va API bilan ishlash." }
+  ]},
+  { group: "Backend", items: [
+    { name: "Python", months: 3, text: "Dasturlashni 0 dan boshlab o‘rganish." },
+    { name: "Django", months: 3, text: "Veb-sayt va server qismini yaratish." }
+  ]}
+];
+// ==========================================
+
+const tg = window.Telegram && window.Telegram.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+const inTelegram = !!(tg && tg.initData);
+
+const $ = (id) => document.getElementById(id);
+
+// Tablar
+function show(tab) {
+  document.querySelectorAll(".view").forEach(v => v.classList.toggle("on", v.id === "v-" + tab));
+  document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b.dataset.tab === tab));
+  window.scrollTo(0, 0);
+}
+document.querySelectorAll("nav button").forEach(b => b.addEventListener("click", () => show(b.dataset.tab)));
+
+// Kurslar ro'yxati va select
+let html = "";
+let options = "";
+COURSES.forEach(g => {
+  html += "<h3>" + g.group + "</h3>";
+  g.items.forEach(c => {
+    html += '<button class="row" data-kurs="' + c.name + '">' +
+      '<div class="dur">' + c.months + "<small>oy</small></div>" +
+      "<div><b>" + c.name + "</b><span>" + c.text + "</span></div></button>";
+    options += '<option value="' + c.name + '">' + c.name + " (" + g.group + ", " + c.months + " oy)</option>";
+  });
+});
+$("list").innerHTML = html;
+$("kurs").innerHTML = options;
+document.querySelectorAll(".row").forEach(r => r.addEventListener("click", () => {
+  $("kurs").value = r.dataset.kurs;
+  show("ariza");
+}));
+
+// Aloqa havolalari
+const links = [
+  ["Telefon", CONFIG.phone, "tel:" + CONFIG.phone.replace(/\s/g, "")],
+  ["Email", CONFIG.email, "mailto:" + CONFIG.email],
+  ["Telegram", CONFIG.telegram.replace("https://", ""), CONFIG.telegram],
+  ["Instagram", CONFIG.instagram.replace("https://", ""), CONFIG.instagram],
+  ["Facebook", CONFIG.facebook.replace("https://", ""), CONFIG.facebook],
+  ["Sayt", CONFIG.site.replace("https://", ""), CONFIG.site]
+];
+$("links").innerHTML = links.map(l =>
+  '<a class="link" href="' + l[2] + '" target="_blank" rel="noopener"><b>' + l[0] + "</b><span>" + l[1] + "</span></a>"
+).join("");
+
+// Havolalarni Telegram ichida to'g'ri ochish
+$("links").addEventListener("click", (e) => {
+  const a = e.target.closest("a");
+  if (!a || !tg) return;
+  const href = a.getAttribute("href");
+  if (href.startsWith("https://t.me/")) { e.preventDefault(); tg.openTelegramLink(href); }
+  else if (href.startsWith("http")) { e.preventDefault(); tg.openLink(href); }
+});
+
+// Ismni Telegramdan oldindan to'ldirish
+if (inTelegram && tg.initDataUnsafe.user) {
+  $("ism").value = tg.initDataUnsafe.user.first_name || "";
+}
+
+// Ariza yuborish
+function say(text, type) {
+  const m = $("msg");
+  m.textContent = text;
+  m.className = "msg " + type;
+}
+
+$("form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const ism = $("ism").value.trim();
+  const tel = $("tel").value.trim();
+  const kurs = $("kurs").value;
+
+  if (!ism) { say("Ismingizni yozing.", "err"); $("ism").focus(); return; }
+  if (tel.replace(/\D/g, "").length < 9) {
+    say("Telefon raqamni to‘liq yozing, masalan: +998901234567.", "err");
+    $("tel").focus();
+    return;
+  }
+
+  if (inTelegram) {
+    tg.sendData(JSON.stringify({ ism: ism, telefon: tel, kurs: kurs })); // yuboradi va oynani yopadi
+  } else {
+    say("Ariza faqat Telegram ichida yuboriladi. Botdagi «Sayt» tugmasi orqali oching.", "err");
+  }
+});
+</script>
+</body>
+</html>
