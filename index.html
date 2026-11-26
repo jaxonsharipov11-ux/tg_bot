@@ -133,7 +133,8 @@ const COURSES = [
 
 const tg = window.Telegram && window.Telegram.WebApp;
 if (tg) { tg.ready(); tg.expand(); }
-const inTelegram = !!(tg && tg.initData);
+// Klaviatura tugmasidan ochilganda initData BO'SH bo'ladi, shuning uchun platform bo'yicha tekshiramiz
+const inTelegram = !!(tg && tg.platform && tg.platform !== "unknown");
 
 const $ = (id) => document.getElementById(id);
 
@@ -180,7 +181,7 @@ $("links").innerHTML = links.map(l =>
 // Havolalarni Telegram ichida to'g'ri ochish
 $("links").addEventListener("click", (e) => {
   const a = e.target.closest("a");
-  if (!a || !tg) return;
+  if (!a || !inTelegram) return;
   const href = a.getAttribute("href");
   if (href.startsWith("https://t.me/")) { e.preventDefault(); tg.openTelegramLink(href); }
   else if (href.startsWith("http")) { e.preventDefault(); tg.openLink(href); }
@@ -205,7 +206,8 @@ $("form").addEventListener("submit", (e) => {
   const kurs = $("kurs").value;
 
   if (!ism) { say("Ismingizni yozing.", "err"); $("ism").focus(); return; }
-  if (tel.replace(/\D/g, "").length < 9) {
+  const raqamlar = tel.replace(/\D/g, "");
+  if (!/^\+?[\d\s\-()]+$/.test(tel) || raqamlar.length < 9 || raqamlar.length > 15) {
     say("Telefon raqamni to‘liq yozing, masalan: +998901234567.", "err");
     $("tel").focus();
     return;
